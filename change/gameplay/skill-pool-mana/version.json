@@ -1,0 +1,16 @@
+{
+  "subCategory": "skill-pool-mana",
+  "parentModule": "gameplay",
+  "currentVersion": "v0.0.1",
+  "status": "archived",
+  "description": "Ricca 授权源技能、奖励池与蓝耗",
+  "versions": [
+    {
+      "version": "v0.0.1",
+      "date": "2026-11-22",
+      "type": "minor",
+      "description": "Ricca 授权源技能、奖励池与蓝耗",
+      "status": "archived"
+    }
+  ]
+}

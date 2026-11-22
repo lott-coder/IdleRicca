@@ -1,0 +1,16 @@
+{
+  "subCategory": "enemy-movement-drift",
+  "parentModule": "gameplay",
+  "currentVersion": "v0.0.1",
+  "status": "archived",
+  "description": "修复敌人移动动画漂移并补齐归档规则",
+  "versions": [
+    {
+      "version": "v0.0.1",
+      "date": "2026-11-22",
+      "type": "patch",
+      "description": "修复敌人移动动画漂移并补齐归档规则",
+      "status": "archived"
+    }
+  ]
+}

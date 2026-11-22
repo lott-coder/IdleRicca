@@ -1,0 +1,16 @@
+{
+  "subCategory": "git-setup",
+  "parentModule": "core",
+  "currentVersion": "v0.0.1",
+  "status": "archived",
+  "description": "初始化 IdleRicca Git 代码库",
+  "versions": [
+    {
+      "version": "v0.0.1",
+      "date": "2026-11-22",
+      "type": "patch",
+      "description": "初始化 IdleRicca Git 代码库",
+      "status": "archived"
+    }
+  ]
+}

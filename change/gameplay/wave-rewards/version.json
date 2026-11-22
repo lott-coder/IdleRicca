@@ -1,0 +1,16 @@
+{
+  "subCategory": "wave-rewards",
+  "parentModule": "gameplay",
+  "currentVersion": "v0.0.1",
+  "status": "archived",
+  "description": "十波战斗与波次奖励",
+  "versions": [
+    {
+      "version": "v0.0.1",
+      "date": "2026-11-22",
+      "type": "minor",
+      "description": "十波战斗与波次奖励",
+      "status": "archived"
+    }
+  ]
+}

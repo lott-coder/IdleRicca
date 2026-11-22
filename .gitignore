@@ -1,0 +1,51 @@
+# ---- 操作系统 / 编辑器 ----
+.DS_Store
+Thumbs.db
+Desktop.ini
+.idea/
+.vscode/
+*.swp
+
+# ---- Python（AI工具链/tools/spec_tool.py）----
+__pycache__/
+*.py[cod]
+.pytest_cache/
+
+# ---- 归档进程锁 ----
+/change/.archive.lock
+
+# ---- 归档工具生成的备份 ----
+/change/**/*.bak
+/spec/*.bak
+
+# ---- 临时产物 ----
+*.tmp
+*.log
+
+# ---- Unity 代码库：只纳入源码目录中的代码、程序集定义和元数据 ----
+/Assets/**
+!/Assets/**/
+!/Assets/**/*.cs
+!/Assets/**/*.asmdef
+!/Assets/**/*.asmref
+!/Assets/**/*.meta
+/Assets/*
+!/Assets/Editor/
+!/Assets/Editor.meta
+!/Assets/Scripts/
+!/Assets/Scripts.meta
+!/Assets/Tests/
+!/Assets/Tests.meta
+
+# Unity 生成目录及 IDE 工程文件
+/[Ll]ibrary/
+/[Tt]emp/
+/[Oo]bj/
+/[Ll]ogs/
+/[Uu]ser[Ss]ettings/
+/[Bb]uild/
+/[Bb]uilds/
+/[Mm]emoryCaptures/
+/.vs/
+*.csproj
+*.sln

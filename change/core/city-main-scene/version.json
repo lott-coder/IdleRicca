@@ -1,0 +1,16 @@
+{
+  "subCategory": "city-main-scene",
+  "parentModule": "core",
+  "currentVersion": "v0.0.1",
+  "status": "archived",
+  "description": "将 Demo 主场景换成 Mster City 并修复材质",
+  "versions": [
+    {
+      "version": "v0.0.1",
+      "date": "2026-11-22",
+      "type": "patch",
+      "description": "将 Demo 主场景换成 Mster City 并修复材质",
+      "status": "archived"
+    }
+  ]
+}

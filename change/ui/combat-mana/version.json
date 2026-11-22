@@ -1,0 +1,16 @@
+{
+  "subCategory": "combat-mana",
+  "parentModule": "ui",
+  "currentVersion": "v0.0.1",
+  "status": "archived",
+  "description": "战斗 HUD 蓝条与技能可用状态",
+  "versions": [
+    {
+      "version": "v0.0.1",
+      "date": "2026-11-22",
+      "type": "minor",
+      "description": "战斗 HUD 蓝条与技能可用状态",
+      "status": "archived"
+    }
+  ]
+}

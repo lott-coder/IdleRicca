@@ -1,0 +1,120 @@
+{
+  "$comment": "全局版本索引。模块名须与 docs/rules/架构.md §6 一致。初始模块采用工具链默认值，待确认。",
+  "schemaVersion": 1,
+  "updatedAt": "2026-11-22",
+  "modules": {
+    "core": {
+      "currentSubCategory": null,
+      "status": "idle",
+      "subCategories": {
+        "demo-foundation": {
+          "currentVersion": "v0.0.1",
+          "status": "archived",
+          "path": "change/core/demo-foundation"
+        },
+        "city-main-scene": {
+          "currentVersion": "v0.0.1",
+          "status": "archived",
+          "path": "change/core/city-main-scene"
+        },
+        "city-enemy-startup": {
+          "currentVersion": "v0.0.1",
+          "status": "archived",
+          "path": "change/core/city-enemy-startup"
+        },
+        "git-setup": {
+          "currentVersion": "v0.0.1",
+          "status": "archived",
+          "path": "change/core/git-setup"
+        }
+      }
+    },
+    "data": {
+      "currentSubCategory": null,
+      "status": "idle",
+      "subCategories": {}
+    },
+    "economy": {
+      "currentSubCategory": null,
+      "status": "idle",
+      "subCategories": {}
+    },
+    "progression": {
+      "currentSubCategory": null,
+      "status": "idle",
+      "subCategories": {}
+    },
+    "ui": {
+      "currentSubCategory": null,
+      "status": "idle",
+      "subCategories": {
+        "combat-hud": {
+          "currentVersion": "v0.0.1",
+          "status": "archived",
+          "path": "change/ui/combat-hud"
+        },
+        "combat-mana": {
+          "currentVersion": "v0.0.1",
+          "status": "archived",
+          "path": "change/ui/combat-mana"
+        }
+      }
+    },
+    "audio": {
+      "currentSubCategory": null,
+      "status": "idle",
+      "subCategories": {}
+    },
+    "_misc": {
+      "currentSubCategory": null,
+      "status": "idle",
+      "subCategories": {}
+    },
+    "gameplay": {
+      "currentSubCategory": null,
+      "status": "idle",
+      "subCategories": {
+        "basic-character-controls": {
+          "currentVersion": "v0.0.1",
+          "status": "archived",
+          "path": "change/gameplay/basic-character-controls"
+        },
+        "enemy-spawn-ai": {
+          "currentVersion": "v0.0.1",
+          "status": "archived",
+          "path": "change/gameplay/enemy-spawn-ai"
+        },
+        "ricca-damage-reactions": {
+          "currentVersion": "v0.0.1",
+          "status": "archived",
+          "path": "change/gameplay/ricca-damage-reactions"
+        },
+        "hit-stop": {
+          "currentVersion": "v0.0.1",
+          "status": "archived",
+          "path": "change/gameplay/hit-stop"
+        },
+        "wave-rewards": {
+          "currentVersion": "v0.0.1",
+          "status": "archived",
+          "path": "change/gameplay/wave-rewards"
+        },
+        "ricca-skills": {
+          "currentVersion": "v0.0.1",
+          "status": "archived",
+          "path": "change/gameplay/ricca-skills"
+        },
+        "enemy-movement-drift": {
+          "currentVersion": "v0.0.1",
+          "status": "archived",
+          "path": "change/gameplay/enemy-movement-drift"
+        },
+        "skill-pool-mana": {
+          "currentVersion": "v0.0.1",
+          "status": "archived",
+          "path": "change/gameplay/skill-pool-mana"
+        }
+      }
+    }
+  }
+}

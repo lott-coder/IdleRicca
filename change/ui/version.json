@@ -1,0 +1,19 @@
+{
+  "module": "ui",
+  "currentSubCategory": null,
+  "status": "idle",
+  "subCategories": {
+    "combat-hud": {
+      "description": "Demo UGUI 战斗 HUD",
+      "currentVersion": "v0.0.1",
+      "status": "archived",
+      "path": "change/ui/combat-hud"
+    },
+    "combat-mana": {
+      "description": "战斗 HUD 蓝条与技能可用状态",
+      "currentVersion": "v0.0.1",
+      "status": "archived",
+      "path": "change/ui/combat-mana"
+    }
+  }
+}

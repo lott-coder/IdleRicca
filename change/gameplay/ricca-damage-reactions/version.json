@@ -1,0 +1,16 @@
+{
+  "subCategory": "ricca-damage-reactions",
+  "parentModule": "gameplay",
+  "currentVersion": "v0.0.1",
+  "status": "archived",
+  "description": "接入 Ricca 普通受击和死亡动画",
+  "versions": [
+    {
+      "version": "v0.0.1",
+      "date": "2026-11-22",
+      "type": "patch",
+      "description": "接入 Ricca 普通受击和死亡动画",
+      "status": "archived"
+    }
+  ]
+}

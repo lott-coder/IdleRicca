@@ -1,0 +1,7 @@
+{
+    "name": "Game.Application",
+    "rootNamespace": "IdleRicca.Application",
+    "references": [
+        "Game.Domain"
+    ]
+}

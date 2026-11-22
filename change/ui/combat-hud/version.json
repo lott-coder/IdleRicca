@@ -1,0 +1,16 @@
+{
+  "subCategory": "combat-hud",
+  "parentModule": "ui",
+  "currentVersion": "v0.0.1",
+  "status": "archived",
+  "description": "Demo UGUI 战斗 HUD",
+  "versions": [
+    {
+      "version": "v0.0.1",
+      "date": "2026-11-22",
+      "type": "minor",
+      "description": "Demo UGUI 战斗 HUD",
+      "status": "archived"
+    }
+  ]
+}

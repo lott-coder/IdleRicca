@@ -1,0 +1,6 @@
+{
+    "name": "Game.Domain",
+    "rootNamespace": "IdleRicca.Domain",
+    "references": [],
+    "noEngineReferences": true
+}

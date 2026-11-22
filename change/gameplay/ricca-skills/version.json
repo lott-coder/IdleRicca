@@ -1,0 +1,16 @@
+{
+  "subCategory": "ricca-skills",
+  "parentModule": "gameplay",
+  "currentVersion": "v0.0.1",
+  "status": "archived",
+  "description": "Ricca 局内技能系统",
+  "versions": [
+    {
+      "version": "v0.0.1",
+      "date": "2026-11-22",
+      "type": "minor",
+      "description": "Ricca 局内技能系统",
+      "status": "archived"
+    }
+  ]
+}

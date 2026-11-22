@@ -1,0 +1,55 @@
+{
+  "module": "gameplay",
+  "currentSubCategory": null,
+  "status": "idle",
+  "subCategories": {
+    "basic-character-controls": {
+      "description": "Ricca 第三人称控制、走跑动画与剑身普攻",
+      "currentVersion": "v0.0.1",
+      "status": "archived",
+      "path": "change/gameplay/basic-character-controls"
+    },
+    "enemy-spawn-ai": {
+      "description": "敌人生成、追踪与近战攻击",
+      "currentVersion": "v0.0.1",
+      "status": "archived",
+      "path": "change/gameplay/enemy-spawn-ai"
+    },
+    "ricca-damage-reactions": {
+      "description": "接入 Ricca 普通受击和死亡动画",
+      "currentVersion": "v0.0.1",
+      "status": "archived",
+      "path": "change/gameplay/ricca-damage-reactions"
+    },
+    "hit-stop": {
+      "description": "Ricca 普攻命中卡肉",
+      "currentVersion": "v0.0.1",
+      "status": "archived",
+      "path": "change/gameplay/hit-stop"
+    },
+    "wave-rewards": {
+      "description": "十波战斗与波次奖励",
+      "currentVersion": "v0.0.1",
+      "status": "archived",
+      "path": "change/gameplay/wave-rewards"
+    },
+    "ricca-skills": {
+      "description": "Ricca 局内技能系统",
+      "currentVersion": "v0.0.1",
+      "status": "archived",
+      "path": "change/gameplay/ricca-skills"
+    },
+    "enemy-movement-drift": {
+      "description": "修复敌人移动动画漂移并补齐归档规则",
+      "currentVersion": "v0.0.1",
+      "status": "archived",
+      "path": "change/gameplay/enemy-movement-drift"
+    },
+    "skill-pool-mana": {
+      "description": "Ricca 授权源技能、奖励池与蓝耗",
+      "currentVersion": "v0.0.1",
+      "status": "archived",
+      "path": "change/gameplay/skill-pool-mana"
+    }
+  }
+}

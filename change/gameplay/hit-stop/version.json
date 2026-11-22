@@ -1,0 +1,16 @@
+{
+  "subCategory": "hit-stop",
+  "parentModule": "gameplay",
+  "currentVersion": "v0.0.1",
+  "status": "archived",
+  "description": "Ricca 普攻命中卡肉",
+  "versions": [
+    {
+      "version": "v0.0.1",
+      "date": "2026-11-22",
+      "type": "minor",
+      "description": "Ricca 普攻命中卡肉",
+      "status": "archived"
+    }
+  ]
+}

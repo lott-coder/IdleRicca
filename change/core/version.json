@@ -1,0 +1,31 @@
+{
+  "module": "core",
+  "currentSubCategory": null,
+  "status": "idle",
+  "subCategories": {
+    "demo-foundation": {
+      "description": "首关主场景、Ricca 与三个敌人基础设施",
+      "currentVersion": "v0.0.1",
+      "status": "archived",
+      "path": "change/core/demo-foundation"
+    },
+    "city-main-scene": {
+      "description": "将 Demo 主场景换成 Mster City 并修复材质",
+      "currentVersion": "v0.0.1",
+      "status": "archived",
+      "path": "change/core/city-main-scene"
+    },
+    "city-enemy-startup": {
+      "description": "Demo 启动阵容接入场景生成规则",
+      "currentVersion": "v0.0.1",
+      "status": "archived",
+      "path": "change/core/city-enemy-startup"
+    },
+    "git-setup": {
+      "description": "初始化 IdleRicca Git 代码库",
+      "currentVersion": "v0.0.1",
+      "status": "archived",
+      "path": "change/core/git-setup"
+    }
+  }
+}

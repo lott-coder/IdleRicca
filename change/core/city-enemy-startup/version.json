@@ -1,0 +1,16 @@
+{
+  "subCategory": "city-enemy-startup",
+  "parentModule": "core",
+  "currentVersion": "v0.0.1",
+  "status": "archived",
+  "description": "Demo 启动阵容接入场景生成规则",
+  "versions": [
+    {
+      "version": "v0.0.1",
+      "date": "2026-11-22",
+      "type": "patch",
+      "description": "Demo 启动阵容接入场景生成规则",
+      "status": "archived"
+    }
+  ]
+}

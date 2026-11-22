@@ -1,0 +1,16 @@
+{
+  "subCategory": "basic-character-controls",
+  "parentModule": "gameplay",
+  "currentVersion": "v0.0.1",
+  "status": "archived",
+  "description": "Ricca 第三人称控制、走跑动画与剑身普攻",
+  "versions": [
+    {
+      "version": "v0.0.1",
+      "date": "2026-11-22",
+      "type": "minor",
+      "description": "Ricca 第三人称控制、走跑动画与剑身普攻",
+      "status": "archived"
+    }
+  ]
+}

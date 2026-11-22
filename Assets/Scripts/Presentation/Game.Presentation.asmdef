@@ -1,0 +1,10 @@
+{
+    "name": "Game.Presentation",
+    "rootNamespace": "IdleRicca.Presentation",
+    "references": [
+        "Game.Domain",
+        "Game.Application",
+        "UnityEngine.UI",
+        "Unity.TextMeshPro"
+    ]
+}

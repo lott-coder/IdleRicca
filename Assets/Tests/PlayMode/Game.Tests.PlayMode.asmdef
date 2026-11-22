@@ -1,0 +1,14 @@
+{
+    "name": "Game.Tests.PlayMode",
+    "references": [
+        "Game.Domain",
+        "Game.Application",
+        "Game.Presentation",
+        "UnityEngine.UI",
+        "Unity.TextMeshPro"
+    ],
+    "optionalUnityReferences": [
+        "TestAssemblies"
+    ],
+    "autoReferenced": false
+}

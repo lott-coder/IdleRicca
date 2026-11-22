@@ -1,0 +1,16 @@
+{
+  "subCategory": "enemy-spawn-ai",
+  "parentModule": "gameplay",
+  "currentVersion": "v0.0.1",
+  "status": "archived",
+  "description": "敌人生成、追踪与近战攻击",
+  "versions": [
+    {
+      "version": "v0.0.1",
+      "date": "2026-11-22",
+      "type": "minor",
+      "description": "敌人生成、追踪与近战攻击",
+      "status": "archived"
+    }
+  ]
+}

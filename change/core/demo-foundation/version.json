@@ -1,0 +1,16 @@
+{
+  "subCategory": "demo-foundation",
+  "parentModule": "core",
+  "currentVersion": "v0.0.1",
+  "status": "archived",
+  "description": "首关主场景、Ricca 与三个敌人基础设施",
+  "versions": [
+    {
+      "version": "v0.0.1",
+      "date": "2026-11-22",
+      "type": "patch",
+      "description": "首关主场景、Ricca 与三个敌人基础设施",
+      "status": "archived"
+    }
+  ]
+}
