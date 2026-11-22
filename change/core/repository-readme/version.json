@@ -1,0 +1,16 @@
+{
+  "subCategory": "repository-readme",
+  "parentModule": "core",
+  "currentVersion": "v0.0.1",
+  "status": "archived",
+  "description": "补充 IdleRicca 仓库 README",
+  "versions": [
+    {
+      "version": "v0.0.1",
+      "date": "2026-11-22",
+      "type": "patch",
+      "description": "补充 IdleRicca 仓库 README",
+      "status": "archived"
+    }
+  ]
+}

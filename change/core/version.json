@@ -32,6 +32,12 @@
       "currentVersion": "v0.0.1",
       "status": "archived",
       "path": "change/core/git-remote-public"
+    },
+    "repository-readme": {
+      "description": "补充 IdleRicca 仓库 README",
+      "currentVersion": "v0.0.1",
+      "status": "archived",
+      "path": "change/core/repository-readme"
     }
   }
 }
