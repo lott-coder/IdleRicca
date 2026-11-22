@@ -264,6 +264,34 @@ namespace IdleRicca.Tests
             Assert.That(run.Status.OfferId, Is.EqualTo(secondOffer));
         }
 
+        [Test]
+        public void BlazeChargeStillGrantsTheBuffWhenItsHitClearsTheWave()
+        {
+            var player = new PlayerActions(25, .3f, .6f, new[]
+            {
+                new SkillDefinition(SkillId.BlazeCharge, 38, 52, 68, .26f, .69f, 1f)
+            });
+            var run = NewRun(player, FindSeed(new[] { 1 }));
+            ClearWave(run, player, 0d);
+            WaveStatus offer = run.Status;
+            Assert.That(run.TryChooseReward(offer.OfferId, FindSkill(offer, 1), 0d), Is.True);
+            Assert.That(run.TryReserveSpawn(EnemyKind.Goblin, 64, true, true, true, 1d, out ulong slot), Is.True);
+            var target = new EnemyHealth(38);
+            Assert.That(run.ConfirmSpawn(slot, target, 1d), Is.True);
+
+            SkillCast cast = PlayerSkillTests.StartCast(player, 1d);
+            var skill = player.SkillCommands;
+            var batch = skill.BeginSkillFrame(cast.Id, true, .45f, 1.5d);
+            Assert.That(skill.TryHitSkill(batch, target), Is.EqualTo(AttackHit.Defeated));
+            Assert.That(skill.EndSkillFrame(batch), Is.False);
+            run.Advance();
+            Assert.That(run.Status.Phase, Is.EqualTo(WaveStatus.RunPhase.Reward));
+            Assert.That(player.IsCastingSkill, Is.False);
+            Assert.That(player.AttackDamage, Is.EqualTo(30));
+            player.Commands.AdvanceCombatTime(21.5d);
+            Assert.That(player.AttackDamage, Is.EqualTo(25));
+        }
+
         internal static PlayerActions NewPlayer(int startingMp = 100) => new PlayerActions(25, .3f, .6f, new[]
         {
             new SkillDefinition(SkillId.QuickCut, 30, 40, 55, .3f, .5f, .6f),

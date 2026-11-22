@@ -26,7 +26,9 @@ namespace IdleRicca.Application.Gameplay
 
     public interface IEnemySpawnCommands
     {
+        /// <summary>在最大导航距离的水平搜索半径内取候选点。</summary>
         EnemySpawnCandidate SampleCandidate();
+        /// <summary>按完整导航路线的长度平方及场景检查结果分配名额。</summary>
         bool TryReserve(EnemyKind kind, float distanceSquared, bool onGround, bool clear, bool reachable, out ulong slot);
         bool ConfirmSpawn(ulong slot);
         bool Release(ulong slot);
@@ -69,7 +71,7 @@ namespace IdleRicca.Application.Gameplay
         {
             var kind = NextKind();
             double angle = _random.NextDouble() * (2d * Math.PI);
-            double radius = Math.Sqrt(_minimumSquared + (_maximumSquared - _minimumSquared) * _random.NextDouble());
+            double radius = Math.Sqrt(_maximumSquared * _random.NextDouble());
             return new EnemySpawnCandidate(kind, (float)(radius * Math.Cos(angle)), (float)(radius * Math.Sin(angle)));
         }
 

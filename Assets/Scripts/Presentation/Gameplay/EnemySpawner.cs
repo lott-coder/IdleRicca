@@ -13,6 +13,7 @@ namespace IdleRicca.Presentation.Gameplay
     public sealed class EnemySpawner : MonoBehaviour
     {
         private const int ChecksPerFrame = 2;
+        private const int SpawnPathCornerCapacity = 64;
         private const float FloorProbeHeight = 1.3f;
         private const float FloorProbeLength = 2.9f;
         private const float ProjectionDistance = .45f;
@@ -37,6 +38,7 @@ namespace IdleRicca.Presentation.Gameplay
         private List<PendingRemoval> _pending;
         private NavMeshPath _spawnPath;
         private readonly Collider[] _obstacle = new Collider[1];
+        private readonly Vector3[] _spawnPathCorners = new Vector3[SpawnPathCornerCapacity];
         private PhysicsScene _physicsScene;
         private NavMeshDataInstance _navigationInstance;
         private int _sceneHandle;
@@ -276,14 +278,13 @@ namespace IdleRicca.Presentation.Gameplay
         {
             var candidate = _waveRun != null ? _waveRun.SampleCandidate() : _population.Commands.SampleCandidate();
             var template = GetTemplate(candidate.Kind);
-            Vector3 point = target + new Vector3(candidate.X, 0f, candidate.Z);
-            if (!TryFindSpawnPoint(template, point, target, targetOnNavMesh, out Vector3 position, out Quaternion rotation))
+            Vector3 point = new Vector3(targetOnNavMesh.x + candidate.X, target.y, targetOnNavMesh.z + candidate.Z);
+            if (!TryFindSpawnPoint(template, point, target, targetOnNavMesh,
+                    out Vector3 position, out Quaternion rotation, out float pathDistanceSquared))
                 return false;
-
-            float distanceSquared = PlanarSquared(position - target);
             bool reserved = _waveRun != null
-                ? _waveRun.TryReserveSpawn(candidate.Kind, distanceSquared, true, true, true, now, out ulong slot)
-                : _population.Commands.TryReserve(candidate.Kind, distanceSquared, true, true, true, out slot);
+                ? _waveRun.TryReserveSpawn(candidate.Kind, pathDistanceSquared, true, true, true, now, out ulong slot)
+                : _population.Commands.TryReserve(candidate.Kind, pathDistanceSquared, true, true, true, out slot);
             if (!reserved)
                 return false;
 
@@ -322,10 +323,11 @@ namespace IdleRicca.Presentation.Gameplay
         }
 
         private bool TryFindSpawnPoint(EnemyActor template, Vector3 candidate, Vector3 target, Vector3 targetOnNavMesh,
-            out Vector3 position, out Quaternion rotation)
+            out Vector3 position, out Quaternion rotation, out float pathDistanceSquared)
         {
             position = default;
             rotation = default;
+            pathDistanceSquared = 0f;
             if (!_physicsScene.Raycast(candidate + Vector3.up * FloorProbeHeight, Vector3.down,
                     out RaycastHit floor, FloorProbeLength, _worldLayers, QueryTriggerInteraction.Ignore) ||
                 floor.normal.y < .71f ||
@@ -336,12 +338,7 @@ namespace IdleRicca.Presentation.Gameplay
             position = nav.position;
             Vector3 toward = target - position;
             toward.y = 0f;
-            float distance = toward.sqrMagnitude;
-            if (distance < _settings.MinimumDistance * _settings.MinimumDistance ||
-                distance > _settings.MaximumDistance * _settings.MaximumDistance)
-                return false;
-
-            rotation = Quaternion.LookRotation(toward);
+            rotation = toward.sqrMagnitude > .0001f ? Quaternion.LookRotation(toward) : template.transform.rotation;
             var body = template.Body;
             Vector3 bodyOffset = rotation * template.transform.InverseTransformPoint(body.transform.TransformPoint(body.center));
             Vector3 center = position + bodyOffset;
@@ -367,8 +364,35 @@ namespace IdleRicca.Presentation.Gameplay
                     return false;
             }
 
-            return NavMesh.CalculatePath(position, targetOnNavMesh, NavMesh.AllAreas, _spawnPath) &&
-                _spawnPath.status == NavMeshPathStatus.PathComplete;
+            return TryMeasureSpawnPath(position, targetOnNavMesh, out pathDistanceSquared);
+        }
+
+        private bool TryMeasureSpawnPath(Vector3 start, Vector3 target, out float distanceSquared)
+        {
+            distanceSquared = 0f;
+            if (!NavMesh.CalculatePath(start, target, NavMesh.AllAreas, _spawnPath) ||
+                _spawnPath.status != NavMeshPathStatus.PathComplete)
+                return false;
+
+            int count = _spawnPath.GetCornersNonAlloc(_spawnPathCorners);
+            // 缓冲填满时可能还有后续拐点，不能用截断路径验证上限。
+            if (count < 2 || count >= _spawnPathCorners.Length)
+                return false;
+
+            float distance = 0f;
+            float maximum = _settings.MaximumDistance;
+            for (int i = 1; i < count; i++)
+            {
+                distance += Vector3.Distance(_spawnPathCorners[i - 1], _spawnPathCorners[i]);
+                if (!(distance <= maximum))
+                    return false;
+            }
+
+            if (distance < _settings.MinimumDistance)
+                return false;
+
+            distanceSquared = distance * distance;
+            return true;
         }
 
         internal void Release(EnemyActor actor, ulong slot)

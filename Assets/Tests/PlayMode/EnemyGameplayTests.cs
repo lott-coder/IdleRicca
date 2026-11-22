@@ -38,14 +38,12 @@ namespace IdleRicca.Tests
                     if (!observed.Add(enemy))
                         continue;
 
-                    Vector3 offset = enemy.transform.position - ricca.transform.position;
-                    offset.y = 0f;
-                    Assert.That(offset.magnitude, Is.InRange(6.8f, 14.2f), enemy.name);
                     Assert.That(enemy.GetComponent<EnemyTarget>().CurrentHp, Is.EqualTo(100));
                     var agent = enemy.GetComponent<NavMeshAgent>();
                     Assert.That(NavMesh.SamplePosition(ricca.transform.position, out var target, .75f, NavMesh.AllAreas));
                     Assert.That(agent.CalculatePath(target.position, path) && path.status == NavMeshPathStatus.PathComplete,
                         Is.True, enemy.name);
+                    Assert.That(RouteLength(path), Is.InRange(6.8f, 14.2f), enemy.name);
                 }
 
                 yield return null;
@@ -67,6 +65,55 @@ namespace IdleRicca.Tests
             yield return WaitFor(() => !removed && spawner.OccupiedSlots == 2, "retirement must release the reserved slot");
             yield return WaitFor(() => spawner.OccupiedSlots == 3, "recently freed slot should refill");
             Assert.That(Object.FindObjectsOfType<EnemyActor>().Length, Is.EqualTo(3));
+        }
+
+        [UnityTest]
+        public IEnumerator CityRejectsNearbySpawnWithLongNavigationDetour()
+        {
+            yield return SceneManager.LoadSceneAsync(0);
+            var spawner = Object.FindObjectOfType<EnemySpawner>();
+            var ricca = Camera.main.GetComponent<ThirdPersonCamera>().Player;
+            ricca.UseInputSource(new NoInput());
+            SetField(spawner, "_nextAttempt", double.PositiveInfinity);
+            foreach (var spawned in Object.FindObjectsOfType<EnemyActor>())
+                Object.Destroy(spawned.gameObject);
+            yield return null;
+
+            Vector3 feet = ricca.transform.position;
+            Assert.That(NavMesh.SamplePosition(feet, out var target, .75f, NavMesh.AllAreas), Is.True);
+            var longDetour = new Vector3(-43.540f, feet.y, 15.567f);
+            var near = new Vector3(-30.972f, feet.y, 7.534f);
+            var shortRoute = feet + Vector3.right * 2f;
+            var path = new NavMeshPath();
+
+            Assert.That(Vector3.Distance(longDetour, feet), Is.InRange(7f, 14f));
+            Assert.That(RouteLength(longDetour, target.position, path), Is.GreaterThan(140f));
+            Assert.That(SpawnPointAccepted(spawner, longDetour, feet, target.position), Is.False,
+                "A complete path through the far side of the block exceeds the configured spawn distance.");
+
+            Assert.That(RouteLength(near, target.position, path), Is.InRange(7f, 14f));
+            Assert.That(SpawnPointAccepted(spawner, near, feet, target.position), Is.True);
+
+            Assert.That(RouteLength(shortRoute, target.position, path), Is.LessThan(7f));
+            Assert.That(SpawnPointAccepted(spawner, shortRoute, feet, target.position), Is.False);
+        }
+
+        private static float RouteLength(Vector3 start, Vector3 target, NavMeshPath path)
+        {
+            Assert.That(NavMesh.SamplePosition(start, out var source, .45f, NavMesh.AllAreas), Is.True);
+            Assert.That(NavMesh.CalculatePath(source.position, target, NavMesh.AllAreas, path), Is.True);
+            Assert.That(path.status, Is.EqualTo(NavMeshPathStatus.PathComplete));
+            return RouteLength(path);
+        }
+
+        private static float RouteLength(NavMeshPath path)
+        {
+            float distance = 0f;
+            Vector3[] corners = path.corners;
+            for (int i = 1; i < corners.Length; i++)
+                distance += Vector3.Distance(corners[i - 1], corners[i]);
+
+            return distance;
         }
 
         [UnityTest]
@@ -111,6 +158,7 @@ namespace IdleRicca.Tests
                 SetProgress(animator, .12f);
                 yield return null;
                 Assert.That(ricca.CurrentHp, Is.EqualTo(100));
+                Assert.That(RiccaGameplayTests.ActiveImpactCount("SwordHitRed"), Is.Zero);
                 SetProgress(animator, .42f);
                 Capture(camera, view, attacker, "Enemy-Attack");
                 SetProgress(animator, .12f);
@@ -120,6 +168,9 @@ namespace IdleRicca.Tests
                 yield return WaitFor(() => attacker.Phase == EnemyPhase.Idle, "finished attack must return to idle");
                 Assert.That(ricca.CurrentHp, Is.EqualTo(100 - attacker.Settings.Damage));
                 Assert.That(bystander.GetComponent<EnemyTarget>().CurrentHp, Is.EqualTo(100));
+                Assert.That(RiccaGameplayTests.ActiveImpactCount("SwordHitRed"), Is.EqualTo(1));
+                yield return null;
+                CaptureActor(camera, view, ricca.transform, "Ricca-Receives-Damage");
                 Assert.That(animator.GetBool(HoldAttack), Is.False);
             }
             finally
@@ -173,6 +224,7 @@ namespace IdleRicca.Tests
                     SetProgress(animator, 1.10f);
                     yield return WaitFor(() => enemy.Phase != EnemyPhase.Attacking, "whiff must finish");
                     Assert.That(player.CurrentHp, Is.EqualTo(100), enemy.name);
+                    Assert.That(RiccaGameplayTests.ActiveImpactCount("SwordHitRed"), Is.Zero, enemy.name);
                     if (enemy.name.StartsWith("Goblin", StringComparison.Ordinal))
                     {
                         Capture(Camera.main, view, enemy, "Enemy-Dodge");
@@ -204,6 +256,8 @@ namespace IdleRicca.Tests
                     SetProgress(driver, 1.10f);
                     yield return WaitFor(() => skeleton.Phase != EnemyPhase.Attacking, "each hit must finish");
                     Assert.That(player.CurrentHp, Is.EqualTo(100 - 10 * (swing + 1)));
+                    Assert.That(RiccaGameplayTests.ActiveImpactCount("SwordHitRed"), Is.GreaterThan(0),
+                        "A lethal hit must also start the received-hit effect.");
                     int reaction = swing == 9 ? riccaDeath : riccaHit;
                     yield return WaitFor(() => riccaAnimator.GetCurrentAnimatorStateInfo(0).fullPathHash == reaction,
                         "an actual enemy strike should start the corresponding Ricca reaction");
@@ -355,7 +409,7 @@ namespace IdleRicca.Tests
             var method = typeof(EnemySpawner).GetMethod("TryFindSpawnPoint", BindingFlags.Instance | BindingFlags.NonPublic);
             return (bool)method.Invoke(spawner, new object[]
             {
-                spawner.GetTemplate(EnemyKind.Goblin), candidate, target, targetNav, Vector3.zero, Quaternion.identity
+                spawner.GetTemplate(EnemyKind.Goblin), candidate, target, targetNav, Vector3.zero, Quaternion.identity, 0f
             });
         }
 

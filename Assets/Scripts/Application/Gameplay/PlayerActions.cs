@@ -58,6 +58,7 @@ namespace IdleRicca.Application.Gameplay
         private SkillCast _skillCast;
         private double _castStartedAt;
         private double _lastCastSample;
+        private double _blazeChargeUntil;
 
         /// <summary>以场景配置的只读数值初始化控制逻辑。</summary>
         public PlayerActions(int damage, float activeStart, float activeEnd, int expectedTargets = 8, int startingHp = 100)
@@ -77,7 +78,7 @@ namespace IdleRicca.Application.Gameplay
             CurrentHp = startingHp;
             _baseDamage = damage;
             _baseMaxHp = startingHp;
-            AttackDamage = damage;
+            UnbuffedAttackDamage = damage;
             _activeStart = activeStart;
             _activeEnd = activeEnd;
             _hitTargets = new HashSet<EnemyHealth>(Math.Max(1, expectedTargets));
@@ -118,14 +119,22 @@ namespace IdleRicca.Application.Gameplay
         public int CurrentMp { get; private set; }
         /// <summary>本局角色配置的最大 MP。</summary>
         public int MaxMp { get; }
-        /// <summary>普攻结算使用的基础伤害与本局攻击增量之和。</summary>
-        public int AttackDamage { get; private set; }
+        internal int UnbuffedAttackDamage { get; private set; }
+        /// <summary>普攻结算使用的伤害，包含本局奖励和当前火焰充能。</summary>
+        public int AttackDamage => IsBlazeCharged
+            ? SkillDefinition.GetChargedAttackDamage(UnbuffedAttackDamage)
+            : UnbuffedAttackDamage;
+        /// <summary>指示是否还在 Blaze Charge 的强化期间。</summary>
+        public bool IsBlazeCharged => IsAlive && _combatTime < _blazeChargeUntil;
         /// <summary>当前生命和局内阶段是否允许战斗输入。</summary>
         public bool CanControl => _waveControlsEnabled && IsAlive;
         public bool IsAlive => CurrentHp > 0;
 
         /// <summary>Increments once for each accepted loss of HP.</summary>
         public ulong DamageSequence { get; private set; }
+
+        /// <summary>仅在应播放受击或死亡动作时递增。</summary>
+        public ulong DamageReactionSequence { get; private set; }
 
         public PlayerCombatStatus CombatStatus => new PlayerCombatStatus(
             CurrentHp, MaxHp, CurrentMp, MaxMp, _comboCount,
@@ -137,10 +146,17 @@ namespace IdleRicca.Application.Gameplay
             if (!CanControl || damage <= 0)
                 return AttackHit.Ignored;
 
-            CurrentHp = HitPoints.AfterDamage(CurrentHp, damage);
+            bool protectedBySkill = IsCastingSkill;
+            int appliedDamage = protectedBySkill ? HitPoints.ReduceDamageDuringSkillCast(damage) : damage;
+            CurrentHp = HitPoints.AfterDamage(CurrentHp, appliedDamage);
             _comboCount = 0;
             DamageSequence++;
-            CancelCombatIntent();
+
+            if (!protectedBySkill || !IsAlive)
+            {
+                DamageReactionSequence++;
+                CancelCombatIntent();
+            }
 
             return IsAlive ? AttackHit.Damaged : AttackHit.Defeated;
         }
@@ -284,7 +300,19 @@ namespace IdleRicca.Application.Gameplay
         AttackHit IPlayerSkillCommands.TryHitSkill(AttackSampleBatch batch, EnemyHealth target) =>
             IsCastingSkill && CanControl ? ResolveHit(batch, target, _skillCast.Damage) : AttackHit.Ignored;
 
-        bool IPlayerSkillCommands.EndSkillFrame(AttackSampleBatch batch) => IsCastingSkill && FinishBatch(batch);
+        bool IPlayerSkillCommands.EndSkillFrame(AttackSampleBatch batch)
+        {
+            if (!IsCastingSkill)
+                return false;
+
+            SkillId skill = _skillCast.Definition.Id;
+            if (!FinishBatch(batch))
+                return false;
+
+            if (skill == SkillId.BlazeCharge)
+                StartBlazeCharge();
+            return true;
+        }
 
         void IPlayerCommands.AdvanceCombatTime(double now)
         {
@@ -300,7 +328,12 @@ namespace IdleRicca.Application.Gameplay
         {
             _waveControlsEnabled = enabled;
             if (!enabled)
+            {
+                // 清波可提前结束已打出伤害的突击动作，同时保留它的充能。
+                if (IsAlive && _skillCast.Definition.Id == SkillId.BlazeCharge && _hitTargets.Count > 0)
+                    StartBlazeCharge();
                 CancelCombatIntent();
+            }
         }
 
         internal void PrepareHitCapacity(int capacity) => _hitTargets.EnsureCapacity(capacity);
@@ -323,7 +356,7 @@ namespace IdleRicca.Application.Gameplay
                     CurrentHp += reward.Amount;
                     return true;
                 case WaveReward.RewardKind.Attack:
-                    AttackDamage += reward.Amount;
+                    UnbuffedAttackDamage += reward.Amount;
                     return true;
                 case WaveReward.RewardKind.Skill:
                     return _skills == null || (CurrentMp >= SkillManaCost && _skills.TryReceive(reward.Level, preview));
@@ -336,9 +369,13 @@ namespace IdleRicca.Application.Gameplay
         {
             MaxHp = _baseMaxHp;
             CurrentHp = Math.Min(CurrentHp, MaxHp);
-            AttackDamage = _baseDamage;
+            UnbuffedAttackDamage = _baseDamage;
+            _blazeChargeUntil = 0d;
             _skills?.Clear();
         }
+
+        private void StartBlazeCharge() =>
+            _blazeChargeUntil = _lastCastSample + SkillDefinition.BlazeChargeDurationSeconds;
 
         private AttackSampleBatch OpenBatch(float progress, float activeStart, float activeEnd)
         {

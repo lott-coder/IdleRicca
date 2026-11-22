@@ -219,7 +219,12 @@ namespace IdleRicca.Presentation.Gameplay
                     continue;
 
                 if (_commands.TryHitRicca(frame, _ricca.Actions) != AttackHit.Ignored)
-                    _ricca.ApplySkillInterruptions();
+                {
+                    Vector3 center = capsuleAtHit + collider.transform.TransformVector(collider.center);
+                    Vector3 towardsAttacker = _body.transform.TransformPoint(_body.center) - center;
+                    towardsAttacker.y = 0f;
+                    _ricca.ShowReceivedHit(center + towardsAttacker.normalized * collider.radius);
+                }
                 return;
             }
         }

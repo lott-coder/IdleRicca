@@ -6,8 +6,10 @@ namespace IdleRicca.Presentation.Gameplay
     public sealed class EnemySpawnSettings : ScriptableObject
     {
         [SerializeField, Min(1)] private int _maximumEnemies = 3;
-        [SerializeField, Min(.1f)] private float _minimumDistance = 7f;
-        [SerializeField, Min(.2f)] private float _maximumDistance = 14f;
+        [SerializeField, Min(.1f), Tooltip("Minimum complete navigation path length to Ricca, in meters.")]
+        private float _minimumDistance = 7f;
+        [SerializeField, Min(.2f), Tooltip("Maximum complete navigation path length to Ricca, in meters.")]
+        private float _maximumDistance = 14f;
         [SerializeField, Min(.1f)] private float _waveInterval = 1.5f;
         [SerializeField, Min(1)] private int _attemptsPerWave = 12;
 

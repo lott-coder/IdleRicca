@@ -60,21 +60,62 @@ namespace IdleRicca.Tests
         }
 
         [Test]
-        public void AHitCancelsSelectionOrAnAlreadyOpenedHitBatch()
+        public void AHitDuringSelectionCancelsTheMenuAndDealsFullDamage()
         {
             var player = SkillWaveRewardTests.NewPlayer();
             SkillWaveRewardTests.GrantFirstSkill(player, 1);
             var skills = player.SkillCommands;
             Assert.That(skills.TryOpenSkillSelection(), Is.True);
             ulong first = player.SkillStatus.SelectionId;
-            DamagePlayer(player);
+            Assert.That(DamagePlayer(player), Is.EqualTo(AttackHit.Damaged));
+            Assert.That(player.CurrentHp, Is.EqualTo(90));
             Assert.That(player.SkillStatus.IsSelecting, Is.False);
             Assert.That(skills.TryCastSkill(first, 0, 1d, out _), Is.False);
+        }
 
+        [TestCase(25, 5)]
+        [TestCase(12, 3)]
+        [TestCase(1, 1)]
+        public void AnAcceptedCastReducesDamageAndKeepsItsHitBatchUntilCompletion(int damage, int reducedDamage)
+        {
+            var player = SkillWaveRewardTests.NewPlayer();
+            SkillWaveRewardTests.GrantFirstSkill(player, 1);
+            var skills = player.SkillCommands;
             SkillCast cast = StartCast(player, 1d);
+            Assert.That(DamagePlayer(player, damage), Is.EqualTo(AttackHit.Damaged));
+            Assert.That(player.CurrentHp, Is.EqualTo(100 - reducedDamage));
+
             var batch = skills.BeginSkillFrame(cast.Id, true, .45f, 1.2d);
             Assert.That(batch.CanHit, Is.True);
-            DamagePlayer(player);
+            Assert.That(DamagePlayer(player, damage), Is.EqualTo(AttackHit.Damaged));
+            Assert.That(player.CurrentHp, Is.EqualTo(100 - 2 * reducedDamage));
+            Assert.That(player.DamageSequence, Is.EqualTo(2UL));
+            Assert.That(player.DamageReactionSequence, Is.Zero);
+            Assert.That(player.IsCastingSkill, Is.True);
+            Assert.That(skills.TryHitSkill(batch, new EnemyHealth(100)), Is.EqualTo(AttackHit.Damaged));
+            Assert.That(skills.EndSkillFrame(batch), Is.False);
+
+            var final = skills.BeginSkillFrame(cast.Id, true, 1f, 1.6d);
+            Assert.That(skills.EndSkillFrame(final), Is.True);
+            Assert.That(player.IsCastingSkill, Is.False);
+            Assert.That(DamagePlayer(player, damage), Is.EqualTo(AttackHit.Damaged));
+            Assert.That(player.CurrentHp, Is.EqualTo(100 - 2 * reducedDamage - damage));
+            Assert.That(player.DamageReactionSequence, Is.EqualTo(1UL));
+        }
+
+        [TestCase(500)]
+        [TestCase(int.MaxValue)]
+        public void DamageThatIsStillLethalEndsTheCast(int damage)
+        {
+            var player = SkillWaveRewardTests.NewPlayer();
+            SkillWaveRewardTests.GrantFirstSkill(player, 1);
+            var skills = player.SkillCommands;
+            SkillCast cast = StartCast(player, 1d);
+            var batch = skills.BeginSkillFrame(cast.Id, true, .45f, 1.2d);
+
+            Assert.That(DamagePlayer(player, damage), Is.EqualTo(AttackHit.Defeated));
+            Assert.That(player.CurrentHp, Is.Zero);
+            Assert.That(player.DamageReactionSequence, Is.EqualTo(1UL));
             Assert.That(player.IsCastingSkill, Is.False);
             var enemy = new EnemyHealth(100);
             Assert.That(skills.TryHitSkill(batch, enemy), Is.EqualTo(AttackHit.Ignored));
@@ -93,6 +134,72 @@ namespace IdleRicca.Tests
             cast = StartCast(player, 2d);
             Assert.That(skills.BeginSkillFrame(cast.Id, false, 0f, 4d).IsValid, Is.False);
             Assert.That(player.IsCastingSkill, Is.False);
+            Assert.That(DamagePlayer(player), Is.EqualTo(AttackHit.Damaged));
+            Assert.That(player.CurrentHp, Is.EqualTo(90));
+        }
+
+        [Test]
+        public void CancellingTheCastImmediatelyRestoresFullDamage()
+        {
+            var player = SkillWaveRewardTests.NewPlayer();
+            SkillWaveRewardTests.GrantFirstSkill(player, 1);
+            SkillCast cast = StartCast(player, 1d);
+
+            Assert.That(player.SkillCommands.CancelSkillCast(cast.Id), Is.True);
+            Assert.That(DamagePlayer(player), Is.EqualTo(AttackHit.Damaged));
+            Assert.That(player.CurrentHp, Is.EqualTo(90));
+        }
+
+        [Test]
+        public void FinishingBlazeChargeBoostsNormalHitsForTwentySeconds()
+        {
+            var player = NewBlazePlayer();
+            SkillCast cast = StartCast(player, 10d);
+            var skill = player.SkillCommands;
+            var batch = skill.BeginSkillFrame(cast.Id, true, 1f, 10.5d);
+            var target = new EnemyHealth(100);
+            Assert.That(player.AttackDamage, Is.EqualTo(25));
+            Assert.That(skill.TryHitSkill(batch, target), Is.EqualTo(AttackHit.Damaged));
+            Assert.That(target.CurrentHp, Is.EqualTo(62));
+            Assert.That(skill.EndSkillFrame(batch), Is.True);
+
+            var commands = player.Commands;
+            commands.AdvanceCombatTime(30.499d);
+            Assert.That(player.AttackDamage, Is.EqualTo(30));
+            Assert.That(commands.TryStartAttack(), Is.True);
+            var swing = commands.BeginAttackFrame(true, 1f, .1f);
+            Assert.That(commands.TryHit(swing, target), Is.EqualTo(AttackHit.Damaged));
+            Assert.That(target.CurrentHp, Is.EqualTo(32));
+            Assert.That(commands.EndAttackFrame(swing), Is.True);
+            commands.AdvanceCombatTime(30.5d);
+            Assert.That(player.AttackDamage, Is.EqualTo(25));
+        }
+
+        [Test]
+        public void RecastingBlazeChargeRefreshesTheBonusWithoutStacking()
+        {
+            var player = NewBlazePlayer();
+            var skill = player.SkillCommands;
+            SkillCast cast = StartCast(player, 1d);
+            Assert.That(skill.EndSkillFrame(skill.BeginSkillFrame(cast.Id, true, 1f, 1.5d)), Is.True);
+            cast = StartCast(player, 10d);
+            Assert.That(skill.EndSkillFrame(skill.BeginSkillFrame(cast.Id, true, 1f, 10.5d)), Is.True);
+            cast = StartCast(player, 18d);
+            Assert.That(skill.CancelSkillCast(cast.Id), Is.True);
+            player.Commands.AdvanceCombatTime(22d);
+            Assert.That(player.AttackDamage, Is.EqualTo(30));
+            player.Commands.AdvanceCombatTime(30.5d);
+            Assert.That(player.AttackDamage, Is.EqualTo(25));
+        }
+
+        private static PlayerActions NewBlazePlayer()
+        {
+            var player = new PlayerActions(25, .3f, .6f, new[]
+            {
+                new SkillDefinition(SkillId.BlazeCharge, 38, 52, 68, .26f, .69f, 1f)
+            });
+            SkillWaveRewardTests.GrantFirstSkill(player, 1);
+            return player;
         }
 
         internal static SkillCast StartCast(PlayerActions player, double time)
@@ -106,13 +213,12 @@ namespace IdleRicca.Tests
             return cast;
         }
 
-        internal static void DamagePlayer(PlayerActions player, int damage = 10)
+        internal static AttackHit DamagePlayer(PlayerActions player, int damage = 10)
         {
             var enemy = new EnemyActions(new EnemyHealth(100), 1.25f, .75f, damage, .3f, .5f, 1f, 1f, 1f, 1f).Commands;
             enemy.BindTarget(player);
             enemy.Step(true, 1f, 0f, true, .1f);
-            Assert.That(enemy.TryHitRicca(enemy.BeginAttackFrame(true, .4f, .1f), player),
-                Is.EqualTo(damage >= 100 ? AttackHit.Defeated : AttackHit.Damaged));
+            return enemy.TryHitRicca(enemy.BeginAttackFrame(true, .4f, .1f), player);
         }
     }
 }

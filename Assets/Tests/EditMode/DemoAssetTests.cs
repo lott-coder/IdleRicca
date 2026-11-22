@@ -17,6 +17,17 @@ namespace IdleRicca.Tests
         private const string ScenePath = "Assets/Scenes/Demo.unity";
 
         [Test]
+        public void WaveSettingsAssetUsesFiftyPercentSkillWeight()
+        {
+            var asset = AssetDatabase.LoadAssetAtPath<WaveSettings>("Assets/Config/Gameplay/WaveSettings.asset");
+            Assert.That(asset, Is.Not.Null);
+            using var serialized = new SerializedObject(asset);
+            Assert.That(serialized.FindProperty("_skillWeight").intValue, Is.EqualTo(50));
+            Assert.That(serialized.FindProperty("_healthWeight").intValue, Is.EqualTo(25));
+            Assert.That(serialized.FindProperty("_attackWeight").intValue, Is.EqualTo(25));
+        }
+
+        [Test]
         public void DemoIsTheBuildEntryWithIntactCityAssets()
         {
             Assert.That(EditorBuildSettings.scenes.First(scene => scene.enabled).path, Is.EqualTo(ScenePath));

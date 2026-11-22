@@ -267,12 +267,20 @@ namespace IdleRicca.Tests
                         "active source effect for " + id);
                     yield return new WaitForSeconds(id == SkillId.HolyGeyser ? .28f : .09f);
                     CapturePair("Source-" + id);
+                    yield return Until(() => inside.CurrentHp < 100, "damage from " + id);
+                    Assert.That(RiccaGameplayTests.ActiveImpactCount("SwordHitBlue"), Is.EqualTo(1),
+                        "A skill must play one impact even when the enemy has two hurtboxes: " + id);
+                    yield return null;
+                    CapturePair("Impact-" + id);
                     yield return Until(() => !actions.IsCastingSkill, "finish source skill " + id);
                     Assert.That(inside.CurrentHp, Is.EqualTo(100 - Damages[i, actions.SkillStatus.GetLevel(0) - 1]), id.ToString());
                     Assert.That(outside.CurrentHp, Is.EqualTo(100), id.ToString());
                     DestroyTarget(inside);
                     DestroyTarget(outside);
                     yield return null;
+
+                    if (id == SkillId.BlazeCharge)
+                        yield return CheckBlazeChargeAfterCast(player, actions, effect, particles);
 
                     if (id == SkillId.SwordThrow || id == SkillId.BlazeCharge || id == SkillId.FrozenOrb)
                     {
@@ -287,6 +295,34 @@ namespace IdleRicca.Tests
             {
                 Time.timeScale = rate;
                 Time.fixedDeltaTime = fixedStep;
+            }
+        }
+
+        private static IEnumerator CheckBlazeChargeAfterCast(RiccaPlayer player, PlayerActions actions,
+            GameObject effect, ParticleSystem[] particles)
+        {
+            BoxCollider blade = player.GetComponent<SwordHitbox>().Geometry;
+            Assert.That(effect.transform.parent, Is.SameAs(blade.transform));
+            Assert.That(effect.transform.localPosition, Is.EqualTo(blade.center));
+            Assert.That(actions.AttackDamage, Is.EqualTo(30));
+
+            float rate = Time.timeScale;
+            double started = Time.timeAsDouble;
+            try
+            {
+                Time.timeScale = 8f;
+                yield return new WaitForSeconds(5f);
+                Assert.That(effect.activeSelf && particles.Any(system => system.particleCount > 0), Is.True);
+                Assert.That(actions.AttackDamage, Is.EqualTo(30));
+                CapturePair("Blaze-Charge-Sword-Buff");
+                yield return Until(() => !effect.activeSelf, "the sword flame expires");
+                Assert.That(Time.timeAsDouble - started, Is.InRange(19d, 21d));
+                Assert.That(actions.AttackDamage, Is.EqualTo(25));
+                CapturePair("Blaze-Charge-Expired");
+            }
+            finally
+            {
+                Time.timeScale = rate;
             }
         }
 
@@ -476,8 +512,23 @@ namespace IdleRicca.Tests
             hitbox.enabled = true;
             Click(slot);
             Assert.That(actions.CurrentMp, Is.EqualTo(9));
+            Assert.That(actions.IsCastingSkill, Is.True);
+            int castAnimation = animator.GetCurrentAnimatorStateInfo(0).fullPathHash;
+            int healthBeforeHit = actions.CurrentHp;
             DamagePlayer(actions);
-            yield return Until(() => !actions.IsCastingSkill && !panel.activeInHierarchy, "accepted cast is interrupted");
+            Assert.That(actions.CurrentHp, Is.EqualTo(healthBeforeHit - 1));
+            yield return null;
+            Assert.That(actions.IsCastingSkill, Is.True);
+            Assert.That(animator.GetCurrentAnimatorStateInfo(0).fullPathHash, Is.EqualTo(castAnimation));
+            CapturePair("05-Protected-Cast-After-Hit");
+            yield return Until(() => !actions.IsCastingSkill && !panel.activeInHierarchy, "protected cast completes");
+            yield return null;
+            Assert.That(animator.GetCurrentAnimatorStateInfo(0).IsName("Base Layer.Hit"), Is.False);
+            DamagePlayer(actions);
+            Assert.That(actions.CurrentHp, Is.EqualTo(healthBeforeHit - 6));
+            yield return Until(() => animator.GetCurrentAnimatorStateInfo(0).IsName("Base Layer.Hit"),
+                "a hit after the cast plays the normal damage reaction");
+            CapturePair("06-Normal-Reaction-After-Cast");
             Assert.That(actions.CurrentMp, Is.EqualTo(9));
             float rate = Time.timeScale;
             float fixedStep = Time.fixedDeltaTime;
@@ -570,7 +621,8 @@ namespace IdleRicca.Tests
         }
 
         private static GameObject GetEffect(RiccaPlayer player, SkillId id) =>
-            player.transform.Cast<Transform>().Single(child => child.name == Effects[(int)id - (int)SkillId.SwordThrow] + "(Clone)").gameObject;
+            player.GetComponentsInChildren<Transform>(true)
+                .Single(child => child.name == Effects[(int)id - (int)SkillId.SwordThrow] + "(Clone)").gameObject;
 
         private static void DestroyTarget(EnemyTarget target)
         {

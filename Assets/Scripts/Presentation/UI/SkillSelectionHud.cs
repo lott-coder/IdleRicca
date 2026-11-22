@@ -18,6 +18,10 @@ namespace IdleRicca.Presentation.UI
         [SerializeField] private Button[] _buttons;
         [SerializeField] private TMP_Text[] _names;
         [SerializeField] private TMP_Text[] _details;
+        [SerializeField] private HudIconSet _icons;
+        [SerializeField] private Image[] _slotIcons;
+        [SerializeField] private Color _disabledIconColor = new Color32(149, 164, 184, 255);
+        [SerializeField, Range(0f, 1f)] private float _slotHitTestAlpha;
         [SerializeField] private string _readyHint;
         [SerializeField] private string _emptyHint;
         [SerializeField] private string _manaHint;
@@ -46,6 +50,15 @@ namespace IdleRicca.Presentation.UI
                 Debug.LogError("Skill HUD requires Ricca and four fully bound slots.", this);
                 enabled = false;
                 return;
+            }
+
+            if (_slotHitTestAlpha > 0f)
+            {
+                foreach (Button button in _buttons)
+                {
+                    if (button.targetGraphic is Image image)
+                        image.alphaHitTestMinimumThreshold = _slotHitTestAlpha;
+                }
             }
 
             _panel.SetActive(false);
@@ -110,6 +123,13 @@ namespace IdleRicca.Presentation.UI
                 _names[i].text = RiccaSkillSettings.GetSkillName(id);
                 _details[i].text = id != SkillId.None && (status.AvailableSlots & (1 << i)) == 0
                     ? _unavailableSlot : _ricca.GetSkillDetails(id, status.GetLevel(i));
+                if (_icons && _slotIcons != null && i < _slotIcons.Length && _slotIcons[i])
+                {
+                    Image icon = _slotIcons[i];
+                    icon.sprite = _icons.GetSkillIcon(id);
+                    icon.enabled = icon.sprite;
+                    icon.color = _buttons[i].interactable ? Color.white : _disabledIconColor;
+                }
             }
 
             _panel.SetActive(true);

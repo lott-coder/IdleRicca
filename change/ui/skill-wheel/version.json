@@ -1,0 +1,16 @@
+{
+  "subCategory": "skill-wheel",
+  "parentModule": "ui",
+  "currentVersion": "v0.0.1",
+  "status": "archived",
+  "description": "右下角四向技能轮盘",
+  "versions": [
+    {
+      "version": "v0.0.1",
+      "date": "2026-11-22",
+      "type": "patch",
+      "description": "右下角四向技能轮盘",
+      "status": "archived"
+    }
+  ]
+}

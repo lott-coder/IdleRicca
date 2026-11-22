@@ -50,6 +50,30 @@
       "currentVersion": "v0.0.1",
       "status": "archived",
       "path": "change/gameplay/skill-pool-mana"
+    },
+    "skill-cast-protection": {
+      "description": "Ricca 技能施放期间的霸体与 80% 减伤",
+      "currentVersion": "v0.0.1",
+      "status": "archived",
+      "path": "change/gameplay/skill-cast-protection"
+    },
+    "combat-impacts": {
+      "description": "战斗命中和 Ricca 受击特效",
+      "currentVersion": "v0.0.1",
+      "status": "archived",
+      "path": "change/gameplay/combat-impacts"
+    },
+    "enemy-spawn-navigation-distance": {
+      "description": "按完整导航路线检查敌人刷新距离",
+      "currentVersion": "v0.0.1",
+      "status": "archived",
+      "path": "change/gameplay/enemy-spawn-navigation-distance"
+    },
+    "blaze-charge-wave-rewards": {
+      "description": "波次奖励权重与 Blaze Charge 火焰充能",
+      "currentVersion": "v0.0.1",
+      "status": "archived",
+      "path": "change/gameplay/blaze-charge-wave-rewards"
     }
   }
 }

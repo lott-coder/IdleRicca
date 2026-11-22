@@ -167,6 +167,8 @@ namespace IdleRicca.Tests
                     Assert.That(player.IsAttacking, Is.True,
                         $"Attack {attackIndex}, normalized state {animator.GetCurrentAnimatorStateInfo(0).normalizedTime}, HP {goblin.CurrentHp}.");
                     Assert.That(animator.GetCurrentAnimatorStateInfo(0).normalizedTime, Is.LessThan(WindowStart));
+                    if (attackIndex == 1)
+                        Assert.That(ActiveImpactCount("SwordHitBlue"), Is.Zero, "Windup must have no impact.");
                     SetAttackProgress(animator, 0.45f);
                     Assert.That(animator.GetCurrentAnimatorStateInfo(0).normalizedTime, Is.GreaterThan(WindowEnd));
                     yield return Frames(2);
@@ -175,6 +177,12 @@ namespace IdleRicca.Tests
                     Assert.That(goblin.CurrentHp, Is.EqualTo(hp));
                     Assert.That(hound.CurrentHp, Is.EqualTo(hp));
                     Assert.That(skeleton.CurrentHp, Is.EqualTo(100));
+                    if (attackIndex == 1)
+                    {
+                        Assert.That(ActiveImpactCount("SwordHitBlue"), Is.EqualTo(2),
+                            "A single swing must start one effect per damaged enemy.");
+                        SaveCameraFrame("Ricca-Deals-Damage.png");
+                    }
                     if (hp == 0)
                     {
                         Assert.That(goblin.gameObject.activeInHierarchy && hound.gameObject.activeInHierarchy, Is.True);
@@ -259,6 +267,7 @@ namespace IdleRicca.Tests
                 SetAttackProgress(animator, 0.22f);
                 yield return null;
                 Assert.That(animator.speed, Is.EqualTo(0.6f).Within(0.001f), "An empty sweep uses the original speed.");
+                Assert.That(ActiveImpactCount("SwordHitBlue"), Is.Zero, "An empty sweep must have no impact.");
 
                 Vector3 offset = player.transform.position - reference.transform.position;
                 Place(goblinTarget, SampleBlade(clipAnimator, referenceBlade, 0.255f) + offset);
@@ -317,6 +326,12 @@ namespace IdleRicca.Tests
             root.position += position - box.transform.TransformPoint(box.center);
             Physics.SyncTransforms();
             return box;
+        }
+
+        internal static int ActiveImpactCount(string prefabName)
+        {
+            string instanceName = prefabName + "(Clone)";
+            return Object.FindObjectsOfType<ParticleSystem>().Count(particle => particle.name == instanceName);
         }
 
         private static Vector3 SampleBlade(Animator animator, BoxCollider box, float progress)

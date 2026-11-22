@@ -20,8 +20,14 @@ namespace IdleRicca.Presentation.UI
         [SerializeField] private TMP_Text _rewardTitle;
         [SerializeField] private Button[] _rewardButtons;
         [SerializeField] private TMP_Text[] _rewardLabels;
+        [SerializeField] private HudIconSet _icons;
+        [SerializeField] private Image[] _rewardIcons;
+        [SerializeField] private Color _finalRewardTitleColor = new Color32(245, 207, 141, 255);
         [SerializeField] private GameObject _resultPanel;
         [SerializeField] private TMP_Text _resultTitle;
+        [SerializeField] private Image _resultAccent;
+        [SerializeField] private Color _winTitleColor = new Color32(245, 207, 141, 255);
+        [SerializeField] private Color _lossTitleColor = new Color32(240, 158, 150, 255);
         [SerializeField] private Button _restart;
         [SerializeField] private GameObject _restartError;
 
@@ -32,6 +38,8 @@ namespace IdleRicca.Presentation.UI
         private Phase _shownPhase;
         private bool _restartReady;
         private bool _restartDelayed;
+        private Color _rewardTitleColor;
+        private Color _resultTitleColor;
 
         private void Awake()
         {
@@ -48,7 +56,11 @@ namespace IdleRicca.Presentation.UI
             {
                 Debug.LogError("Wave HUD requires a spawner, three linked rewards and a result panel.", this);
                 enabled = false;
+                return;
             }
+
+            _rewardTitleColor = _rewardTitle.color;
+            _resultTitleColor = _resultTitle.color;
         }
 
         private void OnEnable()
@@ -101,9 +113,11 @@ namespace IdleRicca.Presentation.UI
                 _rewardPanel.SetActive(_shownOffer != 0);
                 if (_shownOffer != 0)
                 {
-                    _rewardTitle.text = status.Number == WaveStatus.TotalWaves ? "Final Reward" : "Choose a Reward";
+                    bool finalReward = status.Number == WaveStatus.TotalWaves;
+                    _rewardTitle.text = finalReward ? "Final Reward" : "Choose a Reward";
+                    _rewardTitle.color = finalReward ? _finalRewardTitleColor : _rewardTitleColor;
                     for (int i = 0; i < WaveStatus.OfferSize; i++)
-                        SetRewardText(_rewardLabels[i], status.GetReward(i), _shownOffer, i);
+                        ShowReward(status.GetReward(i), i);
                 }
             }
 
@@ -114,6 +128,10 @@ namespace IdleRicca.Presentation.UI
                 _resultTitle.text = status.Phase == Phase.Won ? "Run Complete" :
                     restartDelayed ? "Reload delayed" :
                     status.Phase == Phase.Restarting ? "Restarting..." : "Run Over";
+                _resultTitle.color = status.Phase == Phase.Won ? _winTitleColor :
+                    status.Phase == Phase.Defeated || restartDelayed ? _lossTitleColor : _resultTitleColor;
+                if (_resultAccent)
+                    _resultAccent.color = _resultTitle.color;
                 _restart.interactable = restartReady;
                 _restartError.SetActive(false);
                 _shownPhase = status.Phase;
@@ -124,27 +142,40 @@ namespace IdleRicca.Presentation.UI
             _hasStatus = true;
         }
 
-        private void SetRewardText(TMP_Text label, WaveReward reward, ulong offerId, int index)
+        private void ShowReward(WaveReward reward, int index)
         {
+            TMP_Text label = _rewardLabels[index];
+            Sprite sprite;
             switch (reward.Kind)
             {
                 case WaveReward.RewardKind.Health:
                     label.SetText("Health Lv.{0}\n+{1} Max & Current HP", reward.Level, reward.Amount);
+                    sprite = _icons ? _icons.Health : null;
                     break;
                 case WaveReward.RewardKind.Attack:
                     label.SetText("Attack Lv.{0}\n+{1} Normal Attack", reward.Level, reward.Amount);
+                    sprite = _icons ? _icons.Attack : null;
                     break;
                 default:
-                    if (_spawner.TryGetSkillRewardPreview(offerId, index, out SkillRewardPreview preview))
+                    if (_spawner.TryGetSkillRewardPreview(_shownOffer, index, out SkillRewardPreview preview))
                     {
                         bool isUpgrade = preview.PreviousLevel > 0;
                         label.SetText(SkillRewardFormat(preview.Skill, isUpgrade), preview.Level, preview.PreviousLevel);
+                        sprite = _icons ? _icons.GetSkillIcon(preview.Skill) : null;
                     }
                     else
                     {
                         label.SetText("Skill Lv.{0}\nPlaceholder", reward.Level);
+                        sprite = _icons ? _icons.GenericSkill : null;
                     }
                     break;
+            }
+
+            if (_rewardIcons != null && index < _rewardIcons.Length && _rewardIcons[index])
+            {
+                Image icon = _rewardIcons[index];
+                icon.sprite = sprite;
+                icon.enabled = sprite;
             }
         }
 

@@ -12,8 +12,11 @@ namespace IdleRicca.Presentation.Gameplay
         [SerializeField] private LayerMask _worldMask = 1;
 
         private readonly RaycastHit[] _worldHits = new RaycastHit[32];
+        private ImpactEffectPool _impactEffects;
 
         internal bool IsConfigured => _hurtboxMask.value != 0 && _worldMask.value != 0;
+
+        internal void BindImpactEffects(ImpactEffectPool effects) => _impactEffects = effects;
 
         internal Vector3 LimitTravel(Vector3 from, Vector3 displacement, Vector3 halfSize,
             Quaternion rotation, Transform caster)
@@ -55,7 +58,10 @@ namespace IdleRicca.Presentation.Gameplay
             int count = scene.BoxCast(from, halfSize, displacement / distance, hits,
                 rotation, distance, _hurtboxMask, QueryTriggerInteraction.Collide);
             for (int i = 0; i < count; i++)
-                Apply(hits[i].collider, batch, commands);
+            {
+                RaycastHit hit = hits[i];
+                Apply(hit.collider, hit.distance > 0f ? hit.point : from, batch, commands);
+            }
 
             Overlap(scene, to, halfSize, rotation, batch, commands);
         }
@@ -69,18 +75,21 @@ namespace IdleRicca.Presentation.Gameplay
             {
                 Collider hit = hits[i];
                 hits[i] = null;
-                Apply(hit, batch, commands);
+                Apply(hit, center, batch, commands);
             }
         }
 
-        private static void Apply(Collider hit, AttackSampleBatch batch, IPlayerSkillCommands commands)
+        private void Apply(Collider hit, Vector3 point, AttackSampleBatch batch, IPlayerSkillCommands commands)
         {
             if (!hit || !EnemyTarget.TryResolve(hit, out EnemyTarget target))
                 return;
 
             AttackHit result = commands.TryHitSkill(batch, target.Health);
-            if (result != AttackHit.Ignored)
-                target.ShowHitResult(result, null);
+            if (result == AttackHit.Ignored)
+                return;
+
+            _impactEffects?.Play(hit.ClosestPoint(point));
+            target.ShowHitResult(result, null);
         }
     }
 }

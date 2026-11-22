@@ -144,6 +144,29 @@ namespace IdleRicca.Tests
             Assert.That(sawTwoAttacksAndHealth, Is.True);
         }
 
+        [TestCase(true, .25d, .25d, .5d)]
+        [TestCase(false, .5d, .5d, 0d)]
+        public void EveryCardUsesTheEligibleCategoryWeights(bool includeSkill, double health, double attack, double skill)
+        {
+            const int samples = 12000;
+            var pool = new WaveRewardPool(25, 25, 50, new[] { 10, 20, 30 }, new[] { 4, 8, 12 }, 137);
+            var group = new WaveReward[WaveStatus.OfferSize];
+            var tally = new int[group.Length, 3];
+            for (int i = 0; i < samples; i++)
+            {
+                pool.Draw(group, includeSkill);
+                for (int slot = 0; slot < group.Length; slot++)
+                    tally[slot, (int)group[slot].Kind]++;
+            }
+
+            for (int slot = 0; slot < group.Length; slot++)
+            {
+                Assert.That((double)tally[slot, 0] / samples, Is.EqualTo(health).Within(.012d), $"Health in slot {slot}");
+                Assert.That((double)tally[slot, 1] / samples, Is.EqualTo(attack).Within(.012d), $"Attack in slot {slot}");
+                Assert.That((double)tally[slot, 2] / samples, Is.EqualTo(skill).Within(skill == 0d ? 0d : .012d), $"Skill in slot {slot}");
+            }
+        }
+
         [TestCase(WaveReward.RewardKind.Health)]
         [TestCase(WaveReward.RewardKind.Attack)]
         [TestCase(WaveReward.RewardKind.Skill)]

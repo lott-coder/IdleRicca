@@ -14,6 +14,18 @@
       "currentVersion": "v0.0.1",
       "status": "archived",
       "path": "change/ui/combat-mana"
+    },
+    "blue-gold-hud": {
+      "description": "Demo 局内蓝金 UI 与专属图标",
+      "currentVersion": "v0.0.1",
+      "status": "archived",
+      "path": "change/ui/blue-gold-hud"
+    },
+    "skill-wheel": {
+      "description": "右下角四向技能轮盘",
+      "currentVersion": "v0.0.1",
+      "status": "archived",
+      "path": "change/ui/skill-wheel"
     }
   }
 }

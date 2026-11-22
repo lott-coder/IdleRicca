@@ -1,0 +1,16 @@
+{
+  "subCategory": "enemy-spawn-navigation-distance",
+  "parentModule": "gameplay",
+  "currentVersion": "v0.0.1",
+  "status": "archived",
+  "description": "按完整导航路线检查敌人刷新距离",
+  "versions": [
+    {
+      "version": "v0.0.1",
+      "date": "2026-11-22",
+      "type": "patch",
+      "description": "按完整导航路线检查敌人刷新距离",
+      "status": "archived"
+    }
+  ]
+}

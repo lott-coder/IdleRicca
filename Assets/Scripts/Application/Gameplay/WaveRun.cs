@@ -46,7 +46,7 @@ namespace IdleRicca.Application.Gameplay
             }
 
             if ((long)player.MaxHp + (long)rewards.MaximumHealthBonus * WaveStatus.TotalWaves > int.MaxValue ||
-                (long)player.AttackDamage + (long)rewards.MaximumAttackBonus * WaveStatus.TotalWaves > int.MaxValue)
+                (long)player.UnbuffedAttackDamage + (long)rewards.MaximumAttackBonus * WaveStatus.TotalWaves > int.MaxValue)
                 throw new ArgumentException("The maximum reward stack must fit the combat stat range.", nameof(rewards));
 
             MaximumConfiguredEnemies = highestLimit;

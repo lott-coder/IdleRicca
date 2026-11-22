@@ -1,0 +1,16 @@
+{
+  "subCategory": "skill-cast-protection",
+  "parentModule": "gameplay",
+  "currentVersion": "v0.0.1",
+  "status": "archived",
+  "description": "Ricca 技能施放期间的霸体与 80% 减伤",
+  "versions": [
+    {
+      "version": "v0.0.1",
+      "date": "2026-11-22",
+      "type": "minor",
+      "description": "Ricca 技能施放期间的霸体与 80% 减伤",
+      "status": "archived"
+    }
+  ]
+}

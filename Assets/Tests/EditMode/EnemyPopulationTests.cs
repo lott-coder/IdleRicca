@@ -52,7 +52,7 @@ namespace IdleRicca.Tests
         }
 
         [Test]
-        public void SeededCandidatesAreReproducibleAndInAnnulus()
+        public void SeededCandidatesAreReproducibleAndCoverTheSearchRadius()
         {
             var first = new EnemyPopulation(3, 7f, 14f, 114);
             var repeat = new EnemyPopulation(3, 7f, 14f, 114);
@@ -63,11 +63,17 @@ namespace IdleRicca.Tests
             Assert.That(duplicate.Z, Is.EqualTo(expected.Z));
             Assert.That(other.Commands.SampleCandidate().X, Is.Not.EqualTo(expected.X));
 
+            bool sampledInsideMinimumPathDistance = false;
             for (int i = 0; i < 40; i++)
             {
                 var candidate = first.Commands.SampleCandidate();
-                Assert.That(Math.Sqrt(candidate.X * candidate.X + candidate.Z * candidate.Z), Is.InRange(7, 14));
+                double radius = Math.Sqrt(candidate.X * candidate.X + candidate.Z * candidate.Z);
+                Assert.That(radius, Is.LessThanOrEqualTo(14));
+                sampledInsideMinimumPathDistance |= radius < 7;
             }
+
+            Assert.That(sampledInsideMinimumPathDistance, Is.True,
+                "A short straight-line distance can still have a legal navigation distance.");
         }
 
         [Test]

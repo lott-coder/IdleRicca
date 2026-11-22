@@ -67,6 +67,16 @@
           "currentVersion": "v0.0.1",
           "status": "archived",
           "path": "change/ui/combat-mana"
+        },
+        "blue-gold-hud": {
+          "currentVersion": "v0.0.1",
+          "status": "archived",
+          "path": "change/ui/blue-gold-hud"
+        },
+        "skill-wheel": {
+          "currentVersion": "v0.0.1",
+          "status": "archived",
+          "path": "change/ui/skill-wheel"
         }
       }
     },
@@ -123,6 +133,26 @@
           "currentVersion": "v0.0.1",
           "status": "archived",
           "path": "change/gameplay/skill-pool-mana"
+        },
+        "skill-cast-protection": {
+          "currentVersion": "v0.0.1",
+          "status": "archived",
+          "path": "change/gameplay/skill-cast-protection"
+        },
+        "combat-impacts": {
+          "currentVersion": "v0.0.1",
+          "status": "archived",
+          "path": "change/gameplay/combat-impacts"
+        },
+        "enemy-spawn-navigation-distance": {
+          "currentVersion": "v0.0.1",
+          "status": "archived",
+          "path": "change/gameplay/enemy-spawn-navigation-distance"
+        },
+        "blaze-charge-wave-rewards": {
+          "currentVersion": "v0.0.1",
+          "status": "archived",
+          "path": "change/gameplay/blaze-charge-wave-rewards"
         }
       }
     }

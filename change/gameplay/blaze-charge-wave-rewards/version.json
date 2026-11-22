@@ -1,0 +1,16 @@
+{
+  "subCategory": "blaze-charge-wave-rewards",
+  "parentModule": "gameplay",
+  "currentVersion": "v0.0.1",
+  "status": "archived",
+  "description": "波次奖励权重与 Blaze Charge 火焰充能",
+  "versions": [
+    {
+      "version": "v0.0.1",
+      "date": "2026-11-22",
+      "type": "minor",
+      "description": "波次奖励权重与 Blaze Charge 火焰充能",
+      "status": "archived"
+    }
+  ]
+}

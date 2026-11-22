@@ -1,0 +1,16 @@
+{
+  "subCategory": "combat-impacts",
+  "parentModule": "gameplay",
+  "currentVersion": "v0.0.1",
+  "status": "archived",
+  "description": "战斗命中和 Ricca 受击特效",
+  "versions": [
+    {
+      "version": "v0.0.1",
+      "date": "2026-11-22",
+      "type": "patch",
+      "description": "战斗命中和 Ricca 受击特效",
+      "status": "archived"
+    }
+  ]
+}

@@ -44,7 +44,7 @@ namespace IdleRicca.Tests
         }
 
         [Test]
-        public void RejectedSelectionRetainsManaAndInterruptionKeepsTheAcceptedCost()
+        public void RejectedSelectionRetainsManaAndLethalDamageKeepsTheAcceptedCost()
         {
             var player = SkillWaveRewardTests.NewPlayer(20);
             SkillWaveRewardTests.GrantFirstSkill(player, 1);
@@ -57,7 +57,7 @@ namespace IdleRicca.Tests
 
             SkillCast cast = PlayerSkillTests.StartCast(player, 1d);
             AttackSampleBatch batch = skills.BeginSkillFrame(cast.Id, true, .45f, 1.2d);
-            PlayerSkillTests.DamagePlayer(player);
+            Assert.That(PlayerSkillTests.DamagePlayer(player, 500), Is.EqualTo(AttackHit.Defeated));
             Assert.That(player.CurrentMp, Is.EqualTo(10));
             var enemy = new EnemyHealth(100);
             Assert.That(skills.TryHitSkill(batch, enemy), Is.EqualTo(AttackHit.Ignored));

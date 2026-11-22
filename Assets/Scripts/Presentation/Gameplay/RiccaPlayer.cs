@@ -71,10 +71,14 @@ namespace IdleRicca.Presentation.Gameplay
         [SerializeField] private NormalAttackSettings _attackSettings;
         [SerializeField] private RiccaSkillSettings _skillSettings;
         [SerializeField] private SkillHitbox _skillHitbox;
+        [SerializeField] private ParticleSystem _attackImpact;
+        [SerializeField] private ParticleSystem _damageImpact;
 
         private const float GroundStickSpeed = -2f;
         private const float TerminalSpeed = -35f;
         private const float AttackExitBlendSeconds = 0.08f;
+        private const int AttackImpactCapacity = 16;
+        private const int DamageImpactCapacity = 8;
         private ThirdPersonCamera _view;
         private PlayerActions _actions;
         private IPlayerCommands _commands;
@@ -86,7 +90,9 @@ namespace IdleRicca.Presentation.Gameplay
         private bool _pendingCursorCapture;
         private bool _driverHoldingAttack;
         private AnimationHitStop _hitStop;
-        private ulong _presentedDamage;
+        private ImpactEffectPool _attackImpacts;
+        private ImpactEffectPool _damageImpacts;
+        private ulong _presentedDamageReaction;
         private IPlayerSkillCommands _skillCommands;
         private SkillSelectionHud _skillHud;
         private ulong _shownSkillSelection;
@@ -232,6 +238,12 @@ namespace IdleRicca.Presentation.Gameplay
                 EndSkillPresentation(false);
         }
 
+        internal void ShowReceivedHit(Vector3 position)
+        {
+            _damageImpacts?.Play(position);
+            ApplySkillInterruptions();
+        }
+
         /// <summary>可替换设备采集，仍使用角色的同一控制和结算路径。</summary>
         public void UseInputSource(IRiccaInput source)
         {
@@ -301,6 +313,15 @@ namespace IdleRicca.Presentation.Gameplay
             }
 
             _commands = _actions.Commands;
+            if (_attackImpact)
+            {
+                _attackImpacts = new ImpactEffectPool(_attackImpact, transform, AttackImpactCapacity);
+                _sword.BindImpactEffects(_attackImpacts);
+                if (_skillHitbox)
+                    _skillHitbox.BindImpactEffects(_attackImpacts);
+            }
+            if (_damageImpact)
+                _damageImpacts = new ImpactEffectPool(_damageImpact, transform, DamageImpactCapacity);
         }
 
         internal void BindCamera(ThirdPersonCamera view)
@@ -328,16 +349,25 @@ namespace IdleRicca.Presentation.Gameplay
 
         private void OnDisable()
         {
+            _attackImpacts?.Clear();
+            _damageImpacts?.Clear();
             CancelSkillSelection(_shownSkillSelection);
             if (_playingSkill.IsValid)
             {
                 _skillCommands.CancelSkillCast(_playingSkill.Id);
                 EndSkillPresentation(false);
             }
+            SetSkillEffectActive(SkillId.BlazeCharge, false);
             _hitStop.Release(_animator);
             ReleaseCursor();
             _commands?.CancelAttack();
             ReleaseAnimator(false);
+        }
+
+        private void OnDestroy()
+        {
+            _attackImpacts?.Dispose();
+            _damageImpacts?.Dispose();
         }
 
         private void OnApplicationFocus(bool focused)
@@ -353,10 +383,14 @@ namespace IdleRicca.Presentation.Gameplay
 
         private void Update()
         {
+            _attackImpacts?.RetireCompleted();
+            _damageImpacts?.RetireCompleted();
             _hitStop.RestoreIfElapsed(_animator);
             _commands?.AdvanceCombatTime(Time.timeAsDouble);
             RefreshSkillAvailability();
             ApplySkillInterruptions();
+            SetSkillEffectActive(SkillId.BlazeCharge, _actions?.IsBlazeCharged == true ||
+                (_playedSkillEffect && _playingSkill.Definition.Id == SkillId.BlazeCharge));
             bool reactionStarted = PlayDamageReactionIfNeeded();
             if (!_view || _actions == null)
                 return;
@@ -464,15 +498,15 @@ namespace IdleRicca.Presentation.Gameplay
             if (_actions == null || !_animator || !_animator.isActiveAndEnabled)
                 return false;
 
-            bool newDamage = _presentedDamage != _actions.DamageSequence;
-            if (!newDamage && (_actions.IsAlive || _animator.GetCurrentAnimatorStateInfo(0).fullPathHash == Death))
+            bool newReaction = _presentedDamageReaction != _actions.DamageReactionSequence;
+            if (!newReaction && (_actions.IsAlive || _animator.GetCurrentAnimatorStateInfo(0).fullPathHash == Death))
                 return false;
 
-            _presentedDamage = _actions.DamageSequence;
+            _presentedDamageReaction = _actions.DamageReactionSequence;
             ReleaseAnimator(false);
             _animator.SetBool(Moving, false);
             // Unity may reset an Animator when its GameObject is reactivated.
-            _animator.Play(_actions.IsAlive ? Hit : Death, 0, newDamage ? 0f : 1f);
+            _animator.Play(_actions.IsAlive ? Hit : Death, 0, newReaction ? 0f : 1f);
             _animator.Update(0f);
             return true;
         }
@@ -557,7 +591,11 @@ namespace IdleRicca.Presentation.Gameplay
                 _configuredSkillViews[index] = view;
                 if (view.EffectRoot)
                 {
-                    GameObject effect = Instantiate(view.EffectRoot, _skillHitbox.transform);
+                    bool isBlazeCharge = definition.Id == SkillId.BlazeCharge;
+                    BoxCollider blade = _sword.Geometry;
+                    GameObject effect = Instantiate(view.EffectRoot, isBlazeCharge ? blade.transform : _skillHitbox.transform);
+                    if (isBlazeCharge)
+                        effect.transform.SetLocalPositionAndRotation(blade.center, Quaternion.identity);
                     effect.SetActive(false);
                     _skillEffects[index] = effect;
                     _skillParticles[index] = effect.GetComponentsInChildren<ParticleSystem>(true);
@@ -566,6 +604,8 @@ namespace IdleRicca.Presentation.Gameplay
                         var main = particle.main;
                         main.playOnAwake = false;
                         main.stopAction = ParticleSystemStopAction.None;
+                        if (isBlazeCharge)
+                            main.simulationSpace = ParticleSystemSimulationSpace.Local;
                         particle.Stop(false, ParticleSystemStopBehavior.StopEmittingAndClear);
                     }
                 }
@@ -730,10 +770,17 @@ namespace IdleRicca.Presentation.Gameplay
         private void UpdateSkillEffect(AttackSampleBatch batch, Vector3 from, Vector3 to,
             RiccaSkillSettings.SkillView view)
         {
-            int index = (int)_playingSkill.Definition.Id - 1;
-            GameObject effect = _skillEffects[index];
+            SkillId skill = _playingSkill.Definition.Id;
+            GameObject effect = _skillEffects[(int)skill - 1];
             if (!effect || batch.Progress < view.EffectAt)
                 return;
+
+            if (skill == SkillId.BlazeCharge)
+            {
+                _playedSkillEffect = true;
+                SetSkillEffectActive(skill, true);
+                return;
+            }
 
             Vector3 offset = Vector3.up * (view.EffectHeight - view.Center.y);
             if (view.Mode == RiccaSkillSettings.MotionMode.Dash)
@@ -750,30 +797,44 @@ namespace IdleRicca.Presentation.Gameplay
             if (!_playedSkillEffect)
             {
                 _playedSkillEffect = true;
-                effect.SetActive(true);
-                foreach (ParticleSystem particle in _skillParticles[index])
-                {
-                    if (particle.gameObject.activeInHierarchy)
-                        particle.Play(false);
-                }
+                SetSkillEffectActive(skill, true);
             }
 
             if (view.Mode == RiccaSkillSettings.MotionMode.Projectile)
                 effect.transform.position = to + offset;
         }
 
+        private void SetSkillEffectActive(SkillId skill, bool active)
+        {
+            if (_skillEffects == null)
+                return;
+
+            int index = (int)skill - 1;
+            GameObject effect = _skillEffects[index];
+            if (!effect || effect.activeSelf == active)
+                return;
+
+            if (active)
+            {
+                effect.SetActive(true);
+                foreach (ParticleSystem particle in _skillParticles[index])
+                {
+                    if (particle.gameObject.activeInHierarchy)
+                        particle.Play(false);
+                }
+                return;
+            }
+
+            foreach (ParticleSystem particle in _skillParticles[index])
+                particle.Stop(false, ParticleSystemStopBehavior.StopEmittingAndClear);
+            effect.SetActive(false);
+        }
+
         private void EndSkillPresentation(bool completed)
         {
-            if (_playedSkillEffect)
-            {
-                var effect = _skillEffects[(int)_playingSkill.Definition.Id - 1];
-                if (effect)
-                {
-                    foreach (ParticleSystem particle in _skillParticles[(int)_playingSkill.Definition.Id - 1])
-                        particle.Stop(false, ParticleSystemStopBehavior.StopEmittingAndClear);
-                    effect.SetActive(false);
-                }
-            }
+            SkillId skill = _playingSkill.Definition.Id;
+            if (_playedSkillEffect && (skill != SkillId.BlazeCharge || !_actions.IsBlazeCharged))
+                SetSkillEffectActive(skill, false);
 
             int skillState = _playingSkillState;
             _playingSkill = default;

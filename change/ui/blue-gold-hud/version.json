@@ -1,0 +1,16 @@
+{
+  "subCategory": "blue-gold-hud",
+  "parentModule": "ui",
+  "currentVersion": "v0.0.1",
+  "status": "archived",
+  "description": "Demo 局内蓝金 UI 与专属图标",
+  "versions": [
+    {
+      "version": "v0.0.1",
+      "date": "2026-11-22",
+      "type": "patch",
+      "description": "Demo 局内蓝金 UI 与专属图标",
+      "status": "archived"
+    }
+  ]
+}

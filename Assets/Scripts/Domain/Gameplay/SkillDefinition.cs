@@ -1,8 +1,14 @@
+using System;
+
 namespace IdleRicca.Domain.Gameplay
 {
     /// <summary>技能的纯规则时序和伤害配置。</summary>
     public readonly struct SkillDefinition
     {
+        /// <summary>Blaze Charge 动作完成后的普攻强化时长，单位为游戏秒。</summary>
+        public const double BlazeChargeDurationSeconds = 20d;
+        private const int BlazeChargeAttackBonusPercent = 20;
+
         private readonly int _damage1;
         private readonly int _damage2;
         private readonly int _damage3;
@@ -44,5 +50,9 @@ namespace IdleRicca.Domain.Gameplay
             3 => _damage3,
             _ => 0
         };
+
+        /// <summary>应用 Blaze Charge 的普攻加成，整数伤害向下取整。</summary>
+        public static int GetChargedAttackDamage(int attackDamage) =>
+            (int)Math.Clamp(attackDamage + (long)attackDamage * BlazeChargeAttackBonusPercent / 100, 0, int.MaxValue);
     }
 }

@@ -11,9 +11,13 @@ namespace IdleRicca.Presentation.Gameplay
         [SerializeField] private BoxCollider _geometry;
         [SerializeField] private LayerMask _hurtboxMask;
 
+        private ImpactEffectPool _impactEffects;
+
         public BoxCollider Geometry => _geometry;
 
         internal bool IsConfigured => _geometry && !_geometry.enabled && _hurtboxMask.value != 0;
+
+        internal void BindImpactEffects(ImpactEffectPool effects) => _impactEffects = effects;
 
         internal bool Resolve(AttackSampleBatch batch, NormalAttackSettings settings, IPlayerCommands commands,
             Vector3 previousRoot, Vector3 currentRoot)
@@ -64,6 +68,7 @@ namespace IdleRicca.Presentation.Gameplay
                 if (result == AttackHit.Ignored)
                     continue;
 
+                _impactEffects?.Play(candidate.ClosestPoint(center));
                 target.ShowHitResult(result, settings);
                 hit = true;
             }

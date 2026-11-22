@@ -19,9 +19,9 @@ namespace IdleRicca.Presentation.Gameplay
         }
 
         [SerializeField] private WaveRow[] _waves;
-        [SerializeField, Min(1)] private int _healthWeight = 45;
-        [SerializeField, Min(1)] private int _attackWeight = 45;
-        [SerializeField, Min(1)] private int _skillWeight = 45;
+        [SerializeField, Min(1)] private int _healthWeight = 25;
+        [SerializeField, Min(1)] private int _attackWeight = 25;
+        [SerializeField, Min(1)] private int _skillWeight = 50;
         [SerializeField] private int[] _healthBonuses = { 10, 20, 30 };
         [SerializeField] private int[] _attackBonuses = { 4, 8, 12 };
 
