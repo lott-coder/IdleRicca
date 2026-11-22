@@ -26,6 +26,11 @@
           "currentVersion": "v0.0.1",
           "status": "archived",
           "path": "change/core/git-setup"
+        },
+        "git-remote-public": {
+          "currentVersion": "v0.0.1",
+          "status": "archived",
+          "path": "change/core/git-remote-public"
         }
       }
     },

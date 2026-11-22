@@ -26,6 +26,12 @@
       "currentVersion": "v0.0.1",
       "status": "archived",
       "path": "change/core/git-setup"
+    },
+    "git-remote-public": {
+      "description": "更名并公开 IdleRicca 仓库",
+      "currentVersion": "v0.0.1",
+      "status": "archived",
+      "path": "change/core/git-remote-public"
     }
   }
 }

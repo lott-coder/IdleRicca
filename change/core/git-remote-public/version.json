@@ -1,0 +1,16 @@
+{
+  "subCategory": "git-remote-public",
+  "parentModule": "core",
+  "currentVersion": "v0.0.1",
+  "status": "archived",
+  "description": "更名并公开 IdleRicca 仓库",
+  "versions": [
+    {
+      "version": "v0.0.1",
+      "date": "2026-11-22",
+      "type": "patch",
+      "description": "更名并公开 IdleRicca 仓库",
+      "status": "archived"
+    }
+  ]
+}
